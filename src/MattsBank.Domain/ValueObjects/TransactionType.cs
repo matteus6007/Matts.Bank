@@ -1,0 +1,8 @@
+﻿namespace MattsBank.Domain.ValueObjects
+{
+    public enum TransactionType
+    {
+        Deposit = 1,
+        Withdrawal = 2,
+    }
+}

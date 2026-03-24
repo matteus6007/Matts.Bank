@@ -1,0 +1,13 @@
+version: '3.7'
+
+networks:
+  mattsbank-api:
+    driver: bridge
+
+services:
+  mattsbank.api:
+    networks:
+      - mattsbank-api
+    ports:
+      - "1001:80"
+    env_file: docker-compose.env

@@ -1,0 +1,40 @@
+﻿
+using ErrorOr;
+
+using MattsBank.Api.Contracts;
+using MattsBank.Infrastructure.Repositories;
+
+namespace MattsBank.Api.Services
+{
+    public class TransactionService(IAccountRepository accountRepository, ITransactionRepository transactionRepository) : ITransactionService
+    {
+        private readonly IAccountRepository _accountRepository = accountRepository;
+        private readonly ITransactionRepository _transactionRepository = transactionRepository;
+
+        public async Task<ErrorOr<List<Transaction>>> GetTransactions(string accountNumber, string sortCode)
+        {
+            var account = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
+
+            if (account == null)
+            {
+                return Error.NotFound(description: "Account not found.");
+            }
+
+            var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);
+
+            return transactions == null ? [] : transactions.Select(MapFrom).ToList();
+        }
+
+        // TODO: move to mapper
+        private static Transaction MapFrom(Domain.Entities.Transaction transaction)
+        {
+            return new Transaction
+            {
+                Id = transaction.Id,
+                Amount = transaction.Amount.Value,
+                TransactionDate = transaction.TransactionDate,
+                TransactionType = transaction.TransactionType.ToString()
+            };
+        }
+    }
+}

@@ -1,0 +1,17 @@
+version: '3.7'
+
+networks:
+  default:
+    driver: bridge
+
+services:
+  mattsbank.api:
+    networks:
+      - default
+    image: mattsbank.api
+    build:
+      context: .
+      dockerfile: src/MattsBank.Api/Dockerfile
+      args:
+        CERT_FILE_PATH: ${CERT_FILE_PATH:-.ca_certs}
+        CERT_FILE: ${CERT_FILE}
