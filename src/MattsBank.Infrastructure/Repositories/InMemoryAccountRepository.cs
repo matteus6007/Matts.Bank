@@ -1,4 +1,6 @@
-﻿using MattsBank.Domain.Aggregates;
+﻿using ErrorOr;
+
+using MattsBank.Domain.Aggregates;
 using MattsBank.Domain.Entities;
 using MattsBank.Domain.ValueObjects;
 
@@ -16,9 +18,12 @@ namespace MattsBank.Infrastructure.Repositories
                 && x.SortCode.Equals(sortCode)) ? Task.FromResult(true) : Task.FromResult(false);
         }
 
-        public async Task CreateAsync(BankAccountAggregate aggregate)
+        public async Task<ErrorOr<Success>> CreateAsync(BankAccountAggregate aggregate)
         {
-            if (await AccountExistsAsync(aggregate.AccountNumber, aggregate.SortCode)) throw new InvalidOperationException("Account already exists.");
+            if (await AccountExistsAsync(aggregate.AccountNumber, aggregate.SortCode))
+            {
+                return Error.Conflict(description: "Account already exists");
+            }
 
             var account = new Account(
                 aggregate.Id,
@@ -27,12 +32,15 @@ namespace MattsBank.Infrastructure.Repositories
                 aggregate.FirstName,
                 aggregate.LastName,
                 aggregate.OpenedDate,
-                aggregate.Balance);
+                aggregate.Balance,
+                aggregate.Version);
 
             _accounts.Add(account);
+
+            return Result.Success;
         }
 
-        public async Task DeleteAsync(AccountNumber accountNumber, SortCode sortCode)
+        public async Task<ErrorOr<Success>> DeleteAsync(AccountNumber accountNumber, SortCode sortCode)
         {
             await Task.CompletedTask;
 
@@ -42,13 +50,15 @@ namespace MattsBank.Infrastructure.Repositories
 
             if (account is null)
             {
-                throw new InvalidOperationException("Account does not exist.");
+                return Error.NotFound(description: "Account does not exist");
             }
 
             _accounts.Remove(account);
+
+            return Result.Success;
         }
 
-        public async Task<BankAccountAggregate?> GetByAccountNumberAsync(AccountNumber accountNumber, SortCode sortCode)
+        public async Task<ErrorOr<BankAccountAggregate>> GetByAccountNumberAsync(AccountNumber accountNumber, SortCode sortCode)
         {
             await Task.CompletedTask;
 
@@ -58,7 +68,7 @@ namespace MattsBank.Infrastructure.Repositories
 
             if (account is null)
             {
-                return null;
+                return Error.NotFound(description: "Account does not exist");
             }
 
             var aggregate = BankAccountAggregate.Recreate(account);
@@ -66,7 +76,7 @@ namespace MattsBank.Infrastructure.Repositories
             return aggregate;
         }
 
-        public async Task<int> GetNextAccountNumberAsync()
+        public async Task<AccountNumber> GetNextAccountNumberAsync()
         {
             await Task.CompletedTask;
 
@@ -76,7 +86,7 @@ namespace MattsBank.Infrastructure.Repositories
             return lastAccountNumber;
         }
 
-        public async Task UpdateAsync(BankAccountAggregate aggregate)
+        public async Task<ErrorOr<Success>> UpdateAsync(BankAccountAggregate aggregate)
         {
             await Task.CompletedTask;
 
@@ -84,7 +94,12 @@ namespace MattsBank.Infrastructure.Repositories
             
             if (existing is null)
             {
-                throw new InvalidOperationException("Account does not exist.");            
+               return Error.NotFound(description: "Account does not exist");
+            }
+
+            if (existing.Version != aggregate.PreviousVersion)
+            {
+                return Error.Conflict(description: "Account has been modified by another transaction");
             }
 
             var index = _accounts.IndexOf(existing);
@@ -95,12 +110,15 @@ namespace MattsBank.Infrastructure.Repositories
                 aggregate.FirstName,
                 aggregate.LastName,
                 aggregate.OpenedDate,
-                aggregate.Balance);
+                aggregate.Balance,
+                aggregate.Version);
 
             foreach (var transaction in aggregate.Transactions)
             {
                 await _transactionRepository.CreateAsync(transaction);
             }
+
+            return Result.Success;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace MattsBank.Tests.Services
             var accountNumber = "12345678";
             var sortCode = "123456";
 
-            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns((BankAccountAggregate?)null);
+            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(Error.NotFound("Account does not exist"));
 
             // Act
             var actual = await _sut.GetTransactions(accountNumber, sortCode);

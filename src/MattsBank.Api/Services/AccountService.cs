@@ -23,67 +23,65 @@ namespace MattsBank.Api.Services
 
             var accountAggregate = BankAccountAggregate.Create(request.FirstName, request.LastName, accountNumber, _bankOptions.SortCode);
 
-            await _accountRepository.CreateAsync(accountAggregate);
+            var response = await _accountRepository.CreateAsync(accountAggregate);
+
+            if (response.IsError) return response.Errors;
 
             return MapFrom(accountAggregate);
         }
 
         public async Task<ErrorOr<Success>> DepositAsync(string accountNumber, string sortCode, decimal amount)
         {
-            var accountAggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
+            // TODO: handle retrying transactions in case of concurrency exceptions (optimistic concurrency control)
+            var aggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
 
-            if (accountAggregate == null) return Error.NotFound(description: "Account not found.");
+            if (aggregate.IsError) return aggregate.Errors;
 
-            var response = accountAggregate.Deposit(amount);
+            var response = aggregate.Value.Deposit(amount);
 
-            if (response.IsError)
-            {
-                return response.Errors.First();
-            }
+            if (response.IsError) return response.Errors;
 
-            await _accountRepository.UpdateAsync(accountAggregate);
+            await _accountRepository.UpdateAsync(aggregate.Value);
 
             return Result.Success;
         }
 
         public async Task<ErrorOr<Account>> GetAccountAsync(string accountNumber, string sortCode)
         {
-            var accountAggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
+            var aggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
 
-            if (accountAggregate == null) return Error.NotFound(description: "Account not found.");
+            if (aggregate.IsError) return aggregate.Errors;
 
-            return MapFrom(accountAggregate);
+            return MapFrom(aggregate.Value);
         }
 
         public async Task<ErrorOr<Success>> WithdrawAsync(string accountNumber, string sortCode, decimal amount)
         {
-            var accountAggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
+            // TODO: handle retrying transactions in case of concurrency exceptions (optimistic concurrency control)
+            var aggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
 
-            if (accountAggregate == null) return Error.NotFound(description: "Account not found.");
+            if (aggregate.IsError) return aggregate.Errors;
 
-            var response = accountAggregate.Withdraw(amount);
+            var response = aggregate.Value.Withdraw(amount);
 
-            if (response.IsError)
-            {
-                return response.Errors.First();
-            }
+            if (response.IsError) return response.Errors;
 
-            await _accountRepository.UpdateAsync(accountAggregate);
+            await _accountRepository.UpdateAsync(aggregate.Value);
 
             return Result.Success;
         }
 
         // TODO: move to mapper
-        private static Account MapFrom(BankAccountAggregate accountAggregate)
+        private static Account MapFrom(BankAccountAggregate aggregate)
         {
             return new Account
             {
-                AccountNumber = accountAggregate.AccountNumber.ToString(),
-                SortCode = accountAggregate.SortCode.ToString(),
-                FirstName = accountAggregate.FirstName,
-                LastName = accountAggregate.LastName,
-                OpenedDate = accountAggregate.OpenedDate,
-                Balance = accountAggregate.Balance,
+                AccountNumber = aggregate.AccountNumber.ToString(),
+                SortCode = aggregate.SortCode.ToString(),
+                FirstName = aggregate.FirstName,
+                LastName = aggregate.LastName,
+                OpenedDate = aggregate.OpenedDate,
+                Balance = aggregate.Balance,
             };
         }
     }

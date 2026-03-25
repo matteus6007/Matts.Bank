@@ -76,15 +76,15 @@ namespace MattsBank.Tests.Services
             var accountNumber = "12345678";
             var sortCode = "123456";
 
-            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns((BankAccountAggregate?)null);
+            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(Error.NotFound(description: "Account does not exist"));
 
             // Act
             var result = await _sut.GetAccountAsync(accountNumber, sortCode);
 
             // Assert  
             Assert.True(result.IsError);
-            Assert.True(result.Errors.First().Type == ErrorType.NotFound);
-            Assert.Equal("Account not found.", result.Errors.First().Description);
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+            Assert.Equal("Account does not exist", result.FirstError.Description);
         }
 
         [Fact]
@@ -111,15 +111,15 @@ namespace MattsBank.Tests.Services
             var accountNumber = "12345678";
             var sortCode = "123456";
             var amount = 100m;
-            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns((BankAccountAggregate?)null);
+            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(Error.NotFound(description: "Account does not exist"));
 
             // Act
             var result = await _sut.DepositAsync(accountNumber, sortCode, amount);
 
             // Assert
             Assert.True(result.IsError);
-            Assert.Equal(ErrorType.NotFound, result.Errors.First().Type);
-            Assert.Equal("Account not found.", result.Errors.First().Description);
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+            Assert.Equal("Account does not exist", result.FirstError.Description);
         }
 
         [Fact]
@@ -147,15 +147,15 @@ namespace MattsBank.Tests.Services
             var accountNumber = "12345678";
             var sortCode = "123456";
             var amount = 100m;
-            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns((BankAccountAggregate?)null);
+            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(Error.NotFound(description: "Account does not exist"));
 
             // Act
             var result = await _sut.WithdrawAsync(accountNumber, sortCode, amount);
 
             // Assert
             Assert.True(result.IsError);
-            Assert.Equal(ErrorType.NotFound, result.Errors.First().Type);
-            Assert.Equal("Account not found.", result.Errors.First().Description);
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+            Assert.Equal("Account does not exist", result.FirstError.Description);
         }
 
         [Fact]
@@ -173,8 +173,8 @@ namespace MattsBank.Tests.Services
 
             // Assert
             Assert.True(result.IsError);
-            Assert.Equal(ErrorType.Conflict, result.Errors.First().Type);
-            Assert.Equal("Insufficient funds.", result.Errors.First().Description);
+            Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
+            Assert.Equal("Insufficient funds.", result.FirstError.Description);
         }
     }
 }

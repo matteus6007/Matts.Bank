@@ -2,7 +2,7 @@
 {
     public class AccountNumber
     {
-        public int Number { get; set; }
+        public int Number { get; private set; }
 
         public static implicit operator AccountNumber(string accountNumber)
         {

@@ -13,14 +13,14 @@ namespace MattsBank.Api.Services
 
         public async Task<ErrorOr<List<Transaction>>> GetTransactions(string accountNumber, string sortCode)
         {
-            var account = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
+            var aggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
 
-            if (account == null)
+            if (aggregate.IsError)
             {
-                return Error.NotFound(description: "Account not found.");
+                return aggregate.Errors;
             }
 
-            var transactions = await _transactionRepository.GetByAccountIdAsync(account.Id);
+            var transactions = await _transactionRepository.GetByAccountIdAsync(aggregate.Value.Id);
 
             return transactions == null ? [] : transactions.Select(MapFrom).ToList();
         }

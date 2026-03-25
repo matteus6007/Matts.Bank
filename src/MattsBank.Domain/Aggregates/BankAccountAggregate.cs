@@ -11,6 +11,8 @@ namespace MattsBank.Domain.Aggregates
 
         internal void AddTransaction(Transaction transaction)
         {
+            Version = Version.Value + 1;
+
             _transactions.Add(transaction);
         }        
 
@@ -33,7 +35,8 @@ namespace MattsBank.Domain.Aggregates
             AccountNumber accountNumber,
             SortCode sortCode,
             DateTime openedDate,
-            Balance balance)
+            Balance balance,
+            ValueObjects.Version version)
         {
             Id = id;
             FirstName = firstName;
@@ -42,6 +45,8 @@ namespace MattsBank.Domain.Aggregates
             SortCode = sortCode;
             OpenedDate = openedDate;
             Balance = balance;
+            Version = version;
+            PreviousVersion = version;
         }
 
         public static BankAccountAggregate Create(
@@ -49,7 +54,7 @@ namespace MattsBank.Domain.Aggregates
             string lastName,
             AccountNumber accountNumber,
             SortCode sortCode)
-        => new(Guid.NewGuid(), firstName, lastName, accountNumber, sortCode, DateTime.UtcNow, 0m);
+        => new(Guid.NewGuid(), firstName, lastName, accountNumber, sortCode, DateTime.UtcNow, 0m, 1);
 
         public static BankAccountAggregate Recreate(Account account)
         {
@@ -60,7 +65,8 @@ namespace MattsBank.Domain.Aggregates
                 account.AccountNumber,
                 account.SortCode,
                 account.OpenedDate,
-                account.Balance);
+                account.Balance,
+                account.Version);
 
             return aggregate;
         }

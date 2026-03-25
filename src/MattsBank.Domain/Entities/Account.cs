@@ -9,5 +9,6 @@ namespace MattsBank.Domain.Entities
         string FirstName,
         string LastName,
         DateTime OpenedDate,
-        Balance Balance) : Entity(Id);
+        Balance Balance,
+        ValueObjects.Version Version) : Entity(Id);
 }

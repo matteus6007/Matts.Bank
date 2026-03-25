@@ -1,4 +1,6 @@
-﻿using MattsBank.Domain.Aggregates;
+﻿using ErrorOr;
+
+using MattsBank.Domain.Aggregates;
 using MattsBank.Infrastructure.Repositories;
 
 namespace MattsBank.Tests.Repositories
@@ -27,51 +29,82 @@ namespace MattsBank.Tests.Repositories
         public async Task CreateAccount_ShouldSucceed()
         {
             // Arrange
-            var accountAggregate = BankAccountAggregate.Create("John", "Doe", "12345678", "123456");
+            var aggregate = BankAccountAggregate.Create("John", "Doe", "12345678", "123456");
 
             // Act
-            await _sut.CreateAsync(accountAggregate);
+            await _sut.CreateAsync(aggregate);
 
             // Assert            
-            var retrievedAccount = await _sut.GetByAccountNumberAsync("12345678", "123456");
+            var result = await _sut.GetByAccountNumberAsync("12345678", "123456");
 
-            Assert.NotNull(retrievedAccount);
-            Assert.Equal("John", retrievedAccount!.FirstName);
-            Assert.Equal("Doe", retrievedAccount!.LastName);
-            Assert.Equal(0m, retrievedAccount!.Balance.Value);
+            Assert.False(result.IsError);
+            Assert.NotNull(result.Value);
+            Assert.Equal("John", result.Value.FirstName);
+            Assert.Equal("Doe", result.Value.LastName);
+            Assert.Equal(0m, result.Value.Balance.Value);
+            Assert.Equal(1, result.Value.Version);
         }
 
         [Fact]
-        public async Task CreateDuplicateAccount_ShouldThrowException()
+        public async Task CreateDuplicateAccount_ShouldReturnConflict()
         {
             // Arrange
-            var accountAggregate = BankAccountAggregate.Create("John", "Doe", "12345678", "123456");
+            var aggregate = BankAccountAggregate.Create("John", "Doe", "12345678", "123456");
 
             // Act
-            await _sut.CreateAsync(accountAggregate);
+            await _sut.CreateAsync(aggregate);
+
+            var result = await _sut.CreateAsync(aggregate);
 
             // Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.CreateAsync(accountAggregate));
+            Assert.True(result.IsError);
+            Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
         }
 
         [Fact]
         public async Task UpdateAccount_ShouldSucceed()
         {
             // Arrange
-            var accountAggregate = BankAccountAggregate.Create("John", "Doe", "12345678", "123456");
+            var aggregate = BankAccountAggregate.Create("John", "Doe", "12345678", "123456");
 
-            await _sut.CreateAsync(accountAggregate);
+            await _sut.CreateAsync(aggregate);
 
             // Act
-            accountAggregate.Deposit(10m);
+            aggregate.Deposit(10m);
 
-            await _sut.UpdateAsync(accountAggregate);
+            await _sut.UpdateAsync(aggregate);
 
             // Assert
-            var updatedAccount = await _sut.GetByAccountNumberAsync("12345678", "123456");
+            var result = await _sut.GetByAccountNumberAsync("12345678", "123456");
 
-            Assert.NotNull(updatedAccount);
-            Assert.Equal(10m, updatedAccount!.Balance.Value);
+            Assert.False(result.IsError);
+            Assert.NotNull(result.Value);
+            Assert.Equal(2, result.Value.Version);
+            Assert.Equal(10m, result.Value.Balance.Value);
+        }
+
+        [Fact]
+        public async Task UpdateAccount_VersionIsOutOfDate_ShouldReturnConflict()
+        {
+            // Arrange
+            var aggregate1 = BankAccountAggregate.Create("John", "Doe", "12345678", "123456");
+
+            await _sut.CreateAsync(aggregate1);
+
+            aggregate1.Deposit(10m);
+
+            var aggregate2 = await _sut.GetByAccountNumberAsync("12345678", "123456");
+            aggregate2.Value.Withdraw(10m);
+
+            // Act
+            var result1 = await _sut.UpdateAsync(aggregate1);
+            var result2 = await _sut.UpdateAsync(aggregate2.Value);
+
+            // Assert
+            Assert.False(result1.IsError);
+            Assert.True(result2.IsError);
+            Assert.Equal(ErrorType.Conflict, result2.FirstError.Type);
+            Assert.Equal("Account has been modified by another transaction", result2.FirstError.Description);
         }
     }
 }
