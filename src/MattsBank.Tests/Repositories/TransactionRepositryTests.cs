@@ -14,7 +14,8 @@ namespace MattsBank.Tests.Repositories
             var transaction = new Domain.Entities.Transaction(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                new Amount(100m),
+                100m,
+                100m,
                 DateTime.UtcNow,
                 TransactionType.Deposit);
 
@@ -36,13 +37,15 @@ namespace MattsBank.Tests.Repositories
             var transaction1 = new Domain.Entities.Transaction(
                 Guid.NewGuid(),
                 accountId,
-                new Amount(100m),
+                100m,
+                100m,
                 DateTime.UtcNow.AddDays(-1),
                 TransactionType.Deposit);
             var transaction2 = new Domain.Entities.Transaction(
                 Guid.NewGuid(),
                 accountId,
-                new Amount(50m),
+                50m,
+                50m,
                 DateTime.UtcNow.AddDays(-2),
                 TransactionType.Withdrawal);
             await _repository.CreateAsync(transaction1);

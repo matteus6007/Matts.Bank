@@ -130,7 +130,7 @@ namespace MattsBank.Tests.Services
             var sortCode = "123456";
             var amount = 100m;
             var aggregate = BankAccountAggregate.Create("Matt", "Jones", accountNumber, sortCode);
-            aggregate.Deposit(new Domain.ValueObjects.Amount(200m));
+            aggregate.Deposit(200m);
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
 
             // Act

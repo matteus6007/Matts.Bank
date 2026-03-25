@@ -35,7 +35,7 @@ namespace MattsBank.Infrastructure.Repositories
                 throw new ArgumentException("From date cannot be greater than to date.");
             }
 
-            return _transactions.Where(x => x.AccountId == accountId && x.TransactionDate >= from && x.TransactionDate <= to).ToList();
+            return _transactions.OrderByDescending(x => x.TransactionDate).Where(x => x.AccountId == accountId && x.TransactionDate >= from && x.TransactionDate <= to).ToList();
         }
     }
 }

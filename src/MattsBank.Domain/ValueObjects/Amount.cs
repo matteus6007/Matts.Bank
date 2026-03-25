@@ -12,6 +12,6 @@
         }
 
         public static implicit operator decimal(Amount amount) => amount.Value;
-        public static implicit operator Amount(decimal amount) => new Amount(amount);
+        public static implicit operator Amount(decimal amount) => new(amount);
     }
 }

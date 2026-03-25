@@ -2,6 +2,7 @@
 
 using MattsBank.Api.Services;
 using MattsBank.Domain.Aggregates;
+using MattsBank.Domain.Entities;
 using MattsBank.Domain.ValueObjects;
 using MattsBank.Infrastructure.Repositories;
 
@@ -49,10 +50,10 @@ namespace MattsBank.Tests.Services
 
             var accountId = aggregate.Id;
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
-            var transactions = new List<Domain.Entities.Transaction>
+            var transactions = new List<Transaction>
             {
-                new Domain.Entities.Transaction(Guid.NewGuid(), accountId, new Amount(100), DateTime.UtcNow, TransactionType.Deposit),
-                new Domain.Entities.Transaction(Guid.NewGuid(), accountId, new Amount(50), DateTime.UtcNow, TransactionType.Withdrawal)
+                new Transaction(Guid.NewGuid(), accountId, 100m, 100m, DateTime.UtcNow, TransactionType.Deposit),
+                new Transaction(Guid.NewGuid(), accountId, 50m, 50m, DateTime.UtcNow, TransactionType.Withdrawal)
             };
             _transactionRepository.GetByAccountIdAsync(accountId).Returns(transactions);
 

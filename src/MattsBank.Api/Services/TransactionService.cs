@@ -28,10 +28,15 @@ namespace MattsBank.Api.Services
         // TODO: move to mapper
         private static Transaction MapFrom(Domain.Entities.Transaction transaction)
         {
+            var amount = transaction.TransactionType == Domain.ValueObjects.TransactionType.Deposit
+                ? transaction.Amount.Value
+                : -1 * transaction.Amount.Value;
+
             return new Transaction
             {
                 Id = transaction.Id,
-                Amount = transaction.Amount.Value,
+                Amount = amount,
+                ClosingBalance = transaction.ClosingBalance.Value,
                 TransactionDate = transaction.TransactionDate,
                 TransactionType = transaction.TransactionType.ToString()
             };

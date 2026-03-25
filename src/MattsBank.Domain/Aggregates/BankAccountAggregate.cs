@@ -24,7 +24,7 @@ namespace MattsBank.Domain.Aggregates
         public string FirstName { get; private init; }
         public string LastName { get; private init; }
         public DateTime OpenedDate { get; private init; }
-        public decimal Balance => _transactions.Sum(t =>t.TransactionType == TransactionType.Deposit ? t.Amount.Value : -t.Amount.Value);
+        public Balance Balance { get; private set; }
 
         private BankAccountAggregate(
             Guid id,
@@ -32,7 +32,8 @@ namespace MattsBank.Domain.Aggregates
             string lastName,
             AccountNumber accountNumber,
             SortCode sortCode,
-            DateTime openedDate)
+            DateTime openedDate,
+            Balance balance)
         {
             Id = id;
             FirstName = firstName;
@@ -40,6 +41,7 @@ namespace MattsBank.Domain.Aggregates
             AccountNumber = accountNumber;
             SortCode = sortCode;
             OpenedDate = openedDate;
+            Balance = balance;
         }
 
         public static BankAccountAggregate Create(
@@ -47,9 +49,9 @@ namespace MattsBank.Domain.Aggregates
             string lastName,
             AccountNumber accountNumber,
             SortCode sortCode)
-        => new(Guid.NewGuid(), firstName, lastName, accountNumber, sortCode, DateTime.UtcNow);
+        => new(Guid.NewGuid(), firstName, lastName, accountNumber, sortCode, DateTime.UtcNow, 0m);
 
-        public static BankAccountAggregate Recreate(Account account, IEnumerable<Transaction> transactions)
+        public static BankAccountAggregate Recreate(Account account)
         {
             var aggregate = new BankAccountAggregate(
                 account.Id,
@@ -57,22 +59,21 @@ namespace MattsBank.Domain.Aggregates
                 account.LastName,
                 account.AccountNumber,
                 account.SortCode,
-                account.OpenedDate);
-
-            foreach (var transaction in transactions)
-            {
-                aggregate.AddTransaction(transaction);
-            }
+                account.OpenedDate,
+                account.Balance);
 
             return aggregate;
         }
 
         public ErrorOr<Success> Deposit(Amount amount)
         {
+            Balance += amount;
+
             var transaction = new Transaction(
                 Guid.NewGuid(),
                 Id,
                 amount,
+                Balance,
                 DateTime.UtcNow,
                 TransactionType.Deposit);
 
@@ -85,10 +86,13 @@ namespace MattsBank.Domain.Aggregates
         {
             if (amount.Value > Balance) return Error.Conflict(description: "Insufficient funds.");
 
+            Balance -= amount;
+
             var transaction = new Transaction(
                 Guid.NewGuid(),
                 Id,
                 amount,
+                Balance,
                 DateTime.UtcNow,
                 TransactionType.Withdrawal);
 

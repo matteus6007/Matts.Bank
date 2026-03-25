@@ -38,6 +38,7 @@ namespace MattsBank.Tests.Repositories
             Assert.NotNull(retrievedAccount);
             Assert.Equal("John", retrievedAccount!.FirstName);
             Assert.Equal("Doe", retrievedAccount!.LastName);
+            Assert.Equal(0m, retrievedAccount!.Balance.Value);
         }
 
         [Fact]
@@ -62,7 +63,7 @@ namespace MattsBank.Tests.Repositories
             await _sut.CreateAsync(accountAggregate);
 
             // Act
-            accountAggregate.Deposit(new Domain.ValueObjects.Amount(10m));
+            accountAggregate.Deposit(10m);
 
             await _sut.UpdateAsync(accountAggregate);
 
@@ -70,7 +71,7 @@ namespace MattsBank.Tests.Repositories
             var updatedAccount = await _sut.GetByAccountNumberAsync("12345678", "123456");
 
             Assert.NotNull(updatedAccount);
-            Assert.Equal(10m, updatedAccount!.Balance);
+            Assert.Equal(10m, updatedAccount!.Balance.Value);
         }
     }
 }

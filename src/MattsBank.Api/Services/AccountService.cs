@@ -34,7 +34,7 @@ namespace MattsBank.Api.Services
 
             if (accountAggregate == null) return Error.NotFound(description: "Account not found.");
 
-            var response = accountAggregate.Deposit(new Domain.ValueObjects.Amount(amount));
+            var response = accountAggregate.Deposit(amount);
 
             if (response.IsError)
             {
@@ -61,7 +61,7 @@ namespace MattsBank.Api.Services
 
             if (accountAggregate == null) return Error.NotFound(description: "Account not found.");
 
-            var response = accountAggregate.Withdraw(new Domain.ValueObjects.Amount(amount));
+            var response = accountAggregate.Withdraw(amount);
 
             if (response.IsError)
             {

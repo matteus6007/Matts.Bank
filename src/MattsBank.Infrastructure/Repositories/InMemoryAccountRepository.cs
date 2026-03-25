@@ -26,7 +26,8 @@ namespace MattsBank.Infrastructure.Repositories
                 aggregate.SortCode,
                 aggregate.FirstName,
                 aggregate.LastName,
-                aggregate.OpenedDate);
+                aggregate.OpenedDate,
+                aggregate.Balance);
 
             _accounts.Add(account);
         }
@@ -60,13 +61,7 @@ namespace MattsBank.Infrastructure.Repositories
                 return null;
             }
 
-            // Load transactions separately
-            var transactions = await _transactionRepository.GetByAccountIdAsync(
-                account.Id,
-                null, // from - loads all
-                null); // to - defaults to now
-
-            var aggregate = BankAccountAggregate.Recreate(account, transactions);
+            var aggregate = BankAccountAggregate.Recreate(account);
 
             return aggregate;
         }
@@ -75,7 +70,7 @@ namespace MattsBank.Infrastructure.Repositories
         {
             await Task.CompletedTask;
 
-            var lastAccountNumber = !_accounts.Any() ? 0 : _accounts.Max(x => x.AccountNumber.Number);
+            var lastAccountNumber = _accounts.Count == 0 ? 0 : _accounts.Max(x => x.AccountNumber.Number);
             lastAccountNumber++;
 
             return lastAccountNumber;
@@ -99,15 +94,10 @@ namespace MattsBank.Infrastructure.Repositories
                 aggregate.SortCode,                
                 aggregate.FirstName,
                 aggregate.LastName,
-                aggregate.OpenedDate);
+                aggregate.OpenedDate,
+                aggregate.Balance);
 
-            // Add only new transactions
-            var existingTxns = await _transactionRepository.GetByAccountIdAsync(aggregate.Id);
-            var newTxns = aggregate.Transactions
-                .Where(t => !existingTxns.Any(e => e.Id == t.Id))
-                .ToList();
-
-            foreach (var transaction in newTxns)
+            foreach (var transaction in aggregate.Transactions)
             {
                 await _transactionRepository.CreateAsync(transaction);
             }

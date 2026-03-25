@@ -6,8 +6,7 @@ namespace MattsBank.Domain.Entities
         Guid Id,
         Guid AccountId,
         Amount Amount,
+        Balance ClosingBalance,
         DateTime TransactionDate,
-        TransactionType TransactionType)
-    {
-    }
+        TransactionType TransactionType) : Entity(Id);
 }

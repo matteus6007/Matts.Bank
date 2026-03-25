@@ -8,7 +8,6 @@ namespace MattsBank.Domain.Entities
         SortCode SortCode,
         string FirstName,
         string LastName,
-        DateTime OpenedDate)
-    {
-    }
+        DateTime OpenedDate,
+        Balance Balance) : Entity(Id);
 }
