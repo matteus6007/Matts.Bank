@@ -2,6 +2,8 @@
 
 using MattsBank.Api.Services;
 using MattsBank.Domain.Aggregates;
+using MattsBank.Domain.Entities;
+using MattsBank.Domain.ValueObjects;
 using MattsBank.Infrastructure.Repositories;
 
 using Microsoft.Extensions.Options;
@@ -13,15 +15,17 @@ namespace MattsBank.Tests.Services
     public class AccountServiceTests
     {
         private readonly IAccountRepository _accountRepository;
+        private readonly ITransactionRepository _transactionRepository;
         private readonly AccountService _sut;
 
         public AccountServiceTests()
         {
             _accountRepository = Substitute.For<IAccountRepository>();
+            _transactionRepository = Substitute.For<ITransactionRepository>();
 
             var options = Options.Create(new Api.Options.BankOptions { SortCode = "123456" });
 
-            _sut = new AccountService(_accountRepository, options);
+            _sut = new AccountService(_accountRepository, _transactionRepository, options);
         }
 
         [Fact]
@@ -54,7 +58,18 @@ namespace MattsBank.Tests.Services
             // Arrange
             var accountNumber = "12345678";
             var sortCode = "123456";
-            var aggregate = BankAccountAggregate.Create("Matt", "Jones", accountNumber, sortCode);
+
+            var account = new Account(
+                Guid.NewGuid(),
+                accountNumber,
+                sortCode,
+                "Matt",
+                "Jones",
+                DateTime.UtcNow,
+                0,
+                new Domain.ValueObjects.Version());
+            var aggregate = BankAccountAggregate.Recreate(account);
+
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
 
             // Act
@@ -94,7 +109,18 @@ namespace MattsBank.Tests.Services
             var accountNumber = "12345678";
             var sortCode = "123456";
             var amount = 100m;
-            var aggregate = BankAccountAggregate.Create("Matt", "Jones", accountNumber, sortCode);
+
+            var account = new Account(
+                Guid.NewGuid(),
+                accountNumber,
+                sortCode,
+                "Matt",
+                "Jones",
+                DateTime.UtcNow,
+                0,
+                new Domain.ValueObjects.Version());
+            var aggregate = BankAccountAggregate.Recreate(account);
+
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
 
             // Act
@@ -102,6 +128,9 @@ namespace MattsBank.Tests.Services
 
             // Assert
             Assert.False(result.IsError);
+            Assert.Equal(100m, aggregate.Balance.Value);
+            Assert.Equal(100m, aggregate.Transactions[0].Amount);
+            Assert.Equal(TransactionType.Deposit, aggregate.Transactions[0].TransactionType);
         }
 
         [Fact]
@@ -129,8 +158,18 @@ namespace MattsBank.Tests.Services
             var accountNumber = "12345678";
             var sortCode = "123456";
             var amount = 100m;
-            var aggregate = BankAccountAggregate.Create("Matt", "Jones", accountNumber, sortCode);
-            aggregate.Deposit(200m);
+
+            var account = new Account(
+                Guid.NewGuid(),
+                accountNumber,
+                sortCode,
+                "Matt",
+                "Jones",
+                DateTime.UtcNow,
+                200m,
+                new Domain.ValueObjects.Version());
+            var aggregate = BankAccountAggregate.Recreate(account);
+
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
 
             // Act
@@ -138,6 +177,9 @@ namespace MattsBank.Tests.Services
 
             // Assert
             Assert.False(result.IsError);
+            Assert.Equal(100m, aggregate.Balance.Value);
+            Assert.Equal(-100m, aggregate.Transactions[0].Amount);
+            Assert.Equal(TransactionType.Withdrawal, aggregate.Transactions[0].TransactionType);
         }
 
         [Fact]
@@ -165,7 +207,18 @@ namespace MattsBank.Tests.Services
             var accountNumber = "12345678";
             var sortCode = "123456";
             var amount = 100m;
-            var aggregate = BankAccountAggregate.Create("Matt", "Jones", accountNumber, sortCode);
+
+            var account = new Account(
+                Guid.NewGuid(),
+                accountNumber,
+                sortCode,
+                "Matt",
+                "Jones",
+                DateTime.UtcNow,
+                0,
+                new Domain.ValueObjects.Version());
+            var aggregate = BankAccountAggregate.Recreate(account);
+
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
 
             // Act
@@ -175,6 +228,72 @@ namespace MattsBank.Tests.Services
             Assert.True(result.IsError);
             Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
             Assert.Equal("Insufficient funds.", result.FirstError.Description);
+        }
+
+        [Fact]
+        public async Task ReverseAsync_WhenDepositHasBeenMade_Should_Return_Success()
+        {
+            // Arrange
+            var accountNumber = "12345678";
+            var sortCode = "123456";
+
+            var account = new Account(
+                Guid.NewGuid(),
+                accountNumber,
+                sortCode,
+                "Matt",
+                "Jones",
+                DateTime.UtcNow,
+                100m,
+                new Domain.ValueObjects.Version());
+            var aggregate = BankAccountAggregate.Recreate(account);
+
+            var transaction = new Transaction(Guid.NewGuid(), account.Id, 100m, 100m, DateTime.UtcNow, TransactionType.Deposit);
+
+            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
+            _transactionRepository.GetTransactionById(transaction.Id).Returns(transaction);
+
+            // Act
+            var result = await _sut.ReverseAsync(accountNumber, sortCode, transaction.Id);
+
+            // Assert
+            Assert.False(result.IsError);
+            Assert.Equal(0m, aggregate.Balance.Value);
+            Assert.Equal(-100m, aggregate.Transactions[0].Amount);
+            Assert.Equal(TransactionType.Reversal, aggregate.Transactions[0].TransactionType);
+        }
+
+        [Fact]
+        public async Task ReverseAsync_WhenWithdrawalHasBeenMade_Should_Return_Success()
+        {
+            // Arrange
+            var accountNumber = "12345678";
+            var sortCode = "123456";
+
+            var account = new Account(
+                Guid.NewGuid(),
+                accountNumber,
+                sortCode,
+                "Matt",
+                "Jones",
+                DateTime.UtcNow,
+                100m,
+                new Domain.ValueObjects.Version());
+            var aggregate = BankAccountAggregate.Recreate(account);
+
+            var transaction = new Transaction(Guid.NewGuid(), account.Id, -10m, 100m, DateTime.UtcNow, TransactionType.Withdrawal);
+
+            _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
+            _transactionRepository.GetTransactionById(transaction.Id).Returns(transaction);
+
+            // Act
+            var result = await _sut.ReverseAsync(accountNumber, sortCode, transaction.Id);
+
+            // Assert
+            Assert.False(result.IsError);
+            Assert.Equal(110m, aggregate.Balance.Value);
+            Assert.Equal(10m, aggregate.Transactions[0].Amount);
+            Assert.Equal(TransactionType.Reversal, aggregate.Transactions[0].TransactionType);
         }
     }
 }

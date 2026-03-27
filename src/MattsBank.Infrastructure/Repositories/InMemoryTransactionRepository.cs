@@ -1,4 +1,6 @@
-﻿using MattsBank.Domain.Entities;
+﻿using ErrorOr;
+
+using MattsBank.Domain.Entities;
 
 namespace MattsBank.Infrastructure.Repositories
 {
@@ -36,6 +38,20 @@ namespace MattsBank.Infrastructure.Repositories
             }
 
             return _transactions.OrderByDescending(x => x.TransactionDate).Where(x => x.AccountId == accountId && x.TransactionDate >= from && x.TransactionDate <= to).ToList();
+        }
+
+        public async Task<ErrorOr<Transaction>> GetTransactionById(Guid transactionId)
+        {
+            await Task.CompletedTask;
+            
+            var transaction = _transactions.FirstOrDefault(x => x.Id == transactionId);
+
+            if (transaction == null)
+            {
+                return Error.NotFound(description: $"Transaction with id {transactionId} not found.");
+            }
+
+            return transaction;
         }
     }
 }

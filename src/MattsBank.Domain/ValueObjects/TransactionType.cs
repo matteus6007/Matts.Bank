@@ -4,5 +4,6 @@
     {
         Deposit = 1,
         Withdrawal = 2,
+        Reversal = 3
     }
 }

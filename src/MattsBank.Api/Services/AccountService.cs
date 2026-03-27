@@ -1,4 +1,5 @@
 ﻿
+
 using ErrorOr;
 
 using MattsBank.Api.Contracts;
@@ -12,9 +13,11 @@ namespace MattsBank.Api.Services
 {
     public class AccountService(
         IAccountRepository accountRepository,
+        ITransactionRepository transactionRepository,
         IOptions<BankOptions> options) : IAccountService
     {
         private readonly IAccountRepository _accountRepository = accountRepository;
+        private readonly ITransactionRepository _transactionRepository = transactionRepository;
         private readonly BankOptions _bankOptions = options.Value;
 
         public async Task<ErrorOr<Account>> CreateAccountAsync(CreateAccountRequest request)
@@ -63,6 +66,25 @@ namespace MattsBank.Api.Services
             if (aggregate.IsError) return aggregate.Errors;
 
             var response = aggregate.Value.Withdraw(amount);
+
+            if (response.IsError) return response.Errors;
+
+            await _accountRepository.UpdateAsync(aggregate.Value);
+
+            return Result.Success;
+        }
+
+        public async Task<ErrorOr<Success>> ReverseAsync(string accountNumber, string sortCode, Guid transactionId)
+        {
+            var aggregate = await _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode);
+
+            if (aggregate.IsError) return aggregate.Errors;
+
+            var transaction = await _transactionRepository.GetTransactionById(transactionId);
+
+            if (transaction.IsError) return transaction.Errors;
+
+            var response = aggregate.Value.Reverse(transaction.Value);
 
             if (response.IsError) return response.Errors;
 

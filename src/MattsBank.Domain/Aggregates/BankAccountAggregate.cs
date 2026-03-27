@@ -92,12 +92,14 @@ namespace MattsBank.Domain.Aggregates
         {
             if (amount.Value > Balance) return Error.Conflict(description: "Insufficient funds.");
 
+            decimal transactionAmount = -1 * amount.Value;
+
             Balance -= amount;
 
             var transaction = new Transaction(
                 Guid.NewGuid(),
                 Id,
-                amount,
+                transactionAmount,
                 Balance,
                 DateTime.UtcNow,
                 TransactionType.Withdrawal);
@@ -105,6 +107,25 @@ namespace MattsBank.Domain.Aggregates
             AddTransaction(transaction);
 
             return Result.Success;
-        }       
+        }
+
+        public ErrorOr<Success> Reverse(Transaction transactionToReverse)
+        {
+            decimal reverseAmount = -1 * transactionToReverse.Amount;
+
+            Balance += reverseAmount;
+
+            var transaction = new Transaction(
+                Guid.NewGuid(),
+                Id,
+                reverseAmount,
+                Balance,
+                DateTime.UtcNow,
+                TransactionType.Reversal);
+
+            AddTransaction(transaction);
+
+            return Result.Success;
+        }
     }
 }

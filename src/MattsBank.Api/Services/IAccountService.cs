@@ -10,5 +10,6 @@ namespace MattsBank.Api.Services
         Task<ErrorOr<Account>> GetAccountAsync(string accountNumber, string sortCode);
         Task<ErrorOr<Success>> DepositAsync(string accountNumber, string sortCode, decimal amount);
         Task<ErrorOr<Success>> WithdrawAsync(string accountNumber, string sortCode, decimal amount);
+        Task<ErrorOr<Success>> ReverseAsync(string accountNumber, string sortCode, Guid transactionId);
     }
 }

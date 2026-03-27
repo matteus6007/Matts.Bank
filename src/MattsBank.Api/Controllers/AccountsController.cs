@@ -51,5 +51,16 @@ namespace MattsBank.Api.Controllers
             var response = await accountService.WithdrawAsync(accountNumber, options.Value.SortCode, amount);
             return response.IsError ? Problem(response.Errors) : NoContent();
         }
+
+        [HttpPut]
+        [Route("{accountNumber}/reverse/{transactionId}")]
+        public async Task<IActionResult> Reverse(string accountNumber, Guid transactionId)
+        {
+            if (accountNumber.Length < 8) return Problem(title: "Account number must be at least 8 characters long.", statusCode: 400);
+            if (transactionId.Equals(Guid.Empty)) return Problem(title: "Transaction ID cannot be empty.", statusCode: 400);
+
+            var response = await accountService.ReverseAsync(accountNumber, options.Value.SortCode, transactionId);
+            return response.IsError ? Problem(response.Errors) : NoContent();
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using MattsBank.Domain.Entities;
+﻿using ErrorOr;
+
+using MattsBank.Domain.Entities;
 
 namespace MattsBank.Infrastructure.Repositories
 {
@@ -6,5 +8,6 @@ namespace MattsBank.Infrastructure.Repositories
     {
         Task CreateAsync(Transaction transaction);
         Task<List<Transaction>> GetByAccountIdAsync(Guid accountId, DateTime? from = null, DateTime? to = null);
+        Task<ErrorOr<Transaction>> GetTransactionById(Guid transactionId);
     }
 }
