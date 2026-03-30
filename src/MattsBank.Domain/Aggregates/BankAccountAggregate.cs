@@ -81,7 +81,8 @@ namespace MattsBank.Domain.Aggregates
                 amount,
                 Balance,
                 DateTime.UtcNow,
-                TransactionType.Deposit);
+                TransactionType.Deposit,
+                null);
 
             AddTransaction(transaction);
 
@@ -102,7 +103,8 @@ namespace MattsBank.Domain.Aggregates
                 transactionAmount,
                 Balance,
                 DateTime.UtcNow,
-                TransactionType.Withdrawal);
+                TransactionType.Withdrawal,
+                null);
 
             AddTransaction(transaction);
 
@@ -121,7 +123,8 @@ namespace MattsBank.Domain.Aggregates
                 reverseAmount,
                 Balance,
                 DateTime.UtcNow,
-                TransactionType.Reversal);
+                TransactionType.Reversal,
+                transactionToReverse.Id);
 
             AddTransaction(transaction);
 

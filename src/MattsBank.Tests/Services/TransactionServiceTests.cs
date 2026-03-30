@@ -52,8 +52,8 @@ namespace MattsBank.Tests.Services
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
             var transactions = new List<Transaction>
             {
-                new Transaction(Guid.NewGuid(), accountId, 100m, 100m, DateTime.UtcNow, TransactionType.Deposit),
-                new Transaction(Guid.NewGuid(), accountId, 50m, 50m, DateTime.UtcNow, TransactionType.Withdrawal)
+                new Transaction(Guid.NewGuid(), accountId, 100m, 100m, DateTime.UtcNow, TransactionType.Deposit, null),
+                new Transaction(Guid.NewGuid(), accountId, 50m, 50m, DateTime.UtcNow, TransactionType.Withdrawal, null)
             };
             _transactionRepository.GetByAccountIdAsync(accountId).Returns(transactions);
 

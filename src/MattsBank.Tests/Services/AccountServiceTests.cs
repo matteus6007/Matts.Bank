@@ -248,7 +248,7 @@ namespace MattsBank.Tests.Services
                 new Domain.ValueObjects.Version());
             var aggregate = BankAccountAggregate.Recreate(account);
 
-            var transaction = new Transaction(Guid.NewGuid(), account.Id, 100m, 100m, DateTime.UtcNow, TransactionType.Deposit);
+            var transaction = new Transaction(Guid.NewGuid(), account.Id, 100m, 100m, DateTime.UtcNow, TransactionType.Deposit, null);
 
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
             _transactionRepository.GetTransactionById(transaction.Id).Returns(transaction);
@@ -261,6 +261,7 @@ namespace MattsBank.Tests.Services
             Assert.Equal(0m, aggregate.Balance.Value);
             Assert.Equal(-100m, aggregate.Transactions[0].Amount);
             Assert.Equal(TransactionType.Reversal, aggregate.Transactions[0].TransactionType);
+            Assert.Equal(transaction.Id, aggregate.Transactions[0].OriginalTransactionId);
         }
 
         [Fact]
@@ -281,7 +282,7 @@ namespace MattsBank.Tests.Services
                 new Domain.ValueObjects.Version());
             var aggregate = BankAccountAggregate.Recreate(account);
 
-            var transaction = new Transaction(Guid.NewGuid(), account.Id, -10m, 100m, DateTime.UtcNow, TransactionType.Withdrawal);
+            var transaction = new Transaction(Guid.NewGuid(), account.Id, -10m, 100m, DateTime.UtcNow, TransactionType.Withdrawal, null);
 
             _accountRepository.GetByAccountNumberAsync(accountNumber, sortCode).Returns(aggregate);
             _transactionRepository.GetTransactionById(transaction.Id).Returns(transaction);
@@ -294,6 +295,7 @@ namespace MattsBank.Tests.Services
             Assert.Equal(110m, aggregate.Balance.Value);
             Assert.Equal(10m, aggregate.Transactions[0].Amount);
             Assert.Equal(TransactionType.Reversal, aggregate.Transactions[0].TransactionType);
+            Assert.Equal(transaction.Id, aggregate.Transactions[0].OriginalTransactionId);
         }
     }
 }

@@ -17,7 +17,8 @@ namespace MattsBank.Tests.Repositories
                 100m,
                 100m,
                 DateTime.UtcNow,
-                TransactionType.Deposit);
+                TransactionType.Deposit,
+                null);
 
             await _repository.CreateAsync(transaction);
 
@@ -40,14 +41,16 @@ namespace MattsBank.Tests.Repositories
                 100m,
                 100m,
                 DateTime.UtcNow.AddDays(-1),
-                TransactionType.Deposit);
+                TransactionType.Deposit,
+                null);
             var transaction2 = new Domain.Entities.Transaction(
                 Guid.NewGuid(),
                 accountId,
                 50m,
                 50m,
                 DateTime.UtcNow.AddDays(-2),
-                TransactionType.Withdrawal);
+                TransactionType.Withdrawal,
+                null);
             await _repository.CreateAsync(transaction1);
             await _repository.CreateAsync(transaction2);
             var fromDate = DateTime.UtcNow.AddDays(-3);

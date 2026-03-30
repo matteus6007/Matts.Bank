@@ -8,5 +8,6 @@ namespace MattsBank.Domain.Entities
         decimal Amount,
         Balance ClosingBalance,
         DateTime TransactionDate,
-        TransactionType TransactionType) : Entity(Id);
+        TransactionType TransactionType,
+        Identifier? OriginalTransactionId) : Entity(Id);
 }
