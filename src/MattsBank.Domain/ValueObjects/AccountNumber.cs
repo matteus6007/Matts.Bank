@@ -16,9 +16,7 @@
 
         public override bool Equals(object? obj)
         {
-            var item = obj as AccountNumber;
-
-            return item == null ? false : Number.Equals(item.Number);
+            return obj is AccountNumber item && Number.Equals(item.Number);
         }
 
         public override int GetHashCode()

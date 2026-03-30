@@ -30,7 +30,7 @@ namespace MattsBank.Api.Services
         {
             return new Transaction
             {
-                Id = transaction.Id,
+                Id = transaction.Id.Value,
                 Amount = transaction.Amount,
                 ClosingBalance = transaction.ClosingBalance.Value,
                 TransactionDate = transaction.TransactionDate,

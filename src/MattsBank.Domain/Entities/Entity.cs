@@ -1,4 +1,6 @@
-﻿namespace MattsBank.Domain.Entities
+﻿using MattsBank.Domain.ValueObjects;
+
+namespace MattsBank.Domain.Entities
 {
-    public abstract record Entity(Guid Id);
+    public abstract record Entity(Identifier Id);
 }

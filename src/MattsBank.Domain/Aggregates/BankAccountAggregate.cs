@@ -29,7 +29,7 @@ namespace MattsBank.Domain.Aggregates
         public Balance Balance { get; private set; }
 
         private BankAccountAggregate(
-            Guid id,
+            Identifier id,
             string firstName,
             string lastName,
             AccountNumber accountNumber,
@@ -37,8 +37,8 @@ namespace MattsBank.Domain.Aggregates
             DateTime openedDate,
             Balance balance,
             ValueObjects.Version version)
+            : base(id)
         {
-            Id = id;
             FirstName = firstName;
             LastName = lastName;
             AccountNumber = accountNumber;

@@ -3,8 +3,8 @@
 namespace MattsBank.Domain.Entities
 {
     public record Transaction(
-        Guid Id,
-        Guid AccountId,
+        Identifier Id,
+        Identifier AccountId,
         decimal Amount,
         Balance ClosingBalance,
         DateTime TransactionDate,

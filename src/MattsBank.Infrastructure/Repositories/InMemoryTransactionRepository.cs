@@ -1,6 +1,7 @@
 ﻿using ErrorOr;
 
 using MattsBank.Domain.Entities;
+using MattsBank.Domain.ValueObjects;
 
 namespace MattsBank.Infrastructure.Repositories
 {
@@ -17,7 +18,7 @@ namespace MattsBank.Infrastructure.Repositories
             _transactions.Add(transaction);
         }
 
-        public async Task<List<Transaction>> GetByAccountIdAsync(Guid accountId, DateTime? from = null, DateTime? to = null)
+        public async Task<List<Transaction>> GetByAccountIdAsync(Identifier accountId, DateTime? from = null, DateTime? to = null)
         {
             await Task.CompletedTask;
 
@@ -37,14 +38,14 @@ namespace MattsBank.Infrastructure.Repositories
                 throw new ArgumentException("From date cannot be greater than to date.");
             }
 
-            return _transactions.OrderByDescending(x => x.TransactionDate).Where(x => x.AccountId == accountId && x.TransactionDate >= from && x.TransactionDate <= to).ToList();
+            return _transactions.OrderByDescending(x => x.TransactionDate).Where(x => x.AccountId.Equals(accountId) && x.TransactionDate >= from && x.TransactionDate <= to).ToList();
         }
 
-        public async Task<ErrorOr<Transaction>> GetTransactionById(Guid transactionId)
+        public async Task<ErrorOr<Transaction>> GetTransactionById(Identifier transactionId)
         {
             await Task.CompletedTask;
             
-            var transaction = _transactions.FirstOrDefault(x => x.Id == transactionId);
+            var transaction = _transactions.FirstOrDefault(x => x.Id.Equals(transactionId));
 
             if (transaction == null)
             {

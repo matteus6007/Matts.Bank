@@ -254,7 +254,7 @@ namespace MattsBank.Tests.Services
             _transactionRepository.GetTransactionById(transaction.Id).Returns(transaction);
 
             // Act
-            var result = await _sut.ReverseAsync(accountNumber, sortCode, transaction.Id);
+            var result = await _sut.ReverseAsync(accountNumber, sortCode, transaction.Id.Value);
 
             // Assert
             Assert.False(result.IsError);
@@ -287,7 +287,7 @@ namespace MattsBank.Tests.Services
             _transactionRepository.GetTransactionById(transaction.Id).Returns(transaction);
 
             // Act
-            var result = await _sut.ReverseAsync(accountNumber, sortCode, transaction.Id);
+            var result = await _sut.ReverseAsync(accountNumber, sortCode, transaction.Id.Value);
 
             // Assert
             Assert.False(result.IsError);

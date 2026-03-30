@@ -1,8 +1,10 @@
-﻿namespace MattsBank.Domain.Aggregates
+﻿using MattsBank.Domain.ValueObjects;
+
+namespace MattsBank.Domain.Aggregates
 {
-    public abstract class AggregateRoot
+    public abstract class AggregateRoot(Identifier id)
     {
-        public Guid Id { get; protected init; }
+        public Identifier Id { get; protected init; } = id;
 
         public ValueObjects.Version Version { get; protected set; } = 1;
 

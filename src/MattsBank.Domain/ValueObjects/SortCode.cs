@@ -20,9 +20,7 @@
 
         public override bool Equals(object? obj)
         {
-            var item = obj as SortCode;
-
-            return item == null ? false : Bank.Equals(item.Bank) && Branch.Equals(item.Branch);
+            return obj is SortCode item && Bank.Equals(item.Bank) && Branch.Equals(item.Branch);
         }
 
         public override int GetHashCode()

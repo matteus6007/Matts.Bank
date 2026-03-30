@@ -3,7 +3,7 @@
 namespace MattsBank.Domain.Entities
 {
     public record Account(
-        Guid Id,
+        Identifier Id,
         AccountNumber AccountNumber,
         SortCode SortCode,
         string FirstName,
