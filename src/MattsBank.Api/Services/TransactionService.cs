@@ -34,7 +34,8 @@ namespace MattsBank.Api.Services
                 Amount = transaction.Amount,
                 ClosingBalance = transaction.ClosingBalance.Value,
                 TransactionDate = transaction.TransactionDate,
-                TransactionType = transaction.TransactionType.ToString()
+                TransactionType = transaction.TransactionType.ToString(),
+                OriginalTransactionId = transaction.OriginalTransactionId?.Value
             };
         }
     }
