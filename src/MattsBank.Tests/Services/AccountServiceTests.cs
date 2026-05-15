@@ -129,8 +129,8 @@ namespace MattsBank.Tests.Services
             // Assert
             Assert.False(result.IsError);
             Assert.Equal(100m, aggregate.Balance.Value);
-            Assert.Equal(100m, aggregate.Transactions[0].Amount);
-            Assert.Equal(TransactionType.Deposit, aggregate.Transactions[0].TransactionType);
+            Assert.Equal(100m, aggregate.PendingTransactions[0].Amount);
+            Assert.Equal(TransactionType.Deposit, aggregate.PendingTransactions[0].TransactionType);
         }
 
         [Fact]
@@ -178,8 +178,8 @@ namespace MattsBank.Tests.Services
             // Assert
             Assert.False(result.IsError);
             Assert.Equal(100m, aggregate.Balance.Value);
-            Assert.Equal(-100m, aggregate.Transactions[0].Amount);
-            Assert.Equal(TransactionType.Withdrawal, aggregate.Transactions[0].TransactionType);
+            Assert.Equal(-100m, aggregate.PendingTransactions[0].Amount);
+            Assert.Equal(TransactionType.Withdrawal, aggregate.PendingTransactions[0].TransactionType);
         }
 
         [Fact]
@@ -259,9 +259,9 @@ namespace MattsBank.Tests.Services
             // Assert
             Assert.False(result.IsError);
             Assert.Equal(0m, aggregate.Balance.Value);
-            Assert.Equal(-100m, aggregate.Transactions[0].Amount);
-            Assert.Equal(TransactionType.Reversal, aggregate.Transactions[0].TransactionType);
-            Assert.Equal(transaction.Id, aggregate.Transactions[0].OriginalTransactionId);
+            Assert.Equal(-100m, aggregate.PendingTransactions[0].Amount);
+            Assert.Equal(TransactionType.Reversal, aggregate.PendingTransactions[0].TransactionType);
+            Assert.Equal(transaction.Id, aggregate.PendingTransactions[0].OriginalTransactionId);
         }
 
         [Fact]
@@ -293,9 +293,9 @@ namespace MattsBank.Tests.Services
             // Assert
             Assert.False(result.IsError);
             Assert.Equal(110m, aggregate.Balance.Value);
-            Assert.Equal(10m, aggregate.Transactions[0].Amount);
-            Assert.Equal(TransactionType.Reversal, aggregate.Transactions[0].TransactionType);
-            Assert.Equal(transaction.Id, aggregate.Transactions[0].OriginalTransactionId);
+            Assert.Equal(10m, aggregate.PendingTransactions[0].Amount);
+            Assert.Equal(TransactionType.Reversal, aggregate.PendingTransactions[0].TransactionType);
+            Assert.Equal(transaction.Id, aggregate.PendingTransactions[0].OriginalTransactionId);
         }
     }
 }

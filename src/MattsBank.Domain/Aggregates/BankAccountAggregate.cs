@@ -16,7 +16,7 @@ namespace MattsBank.Domain.Aggregates
             _transactions.Add(transaction);
         }        
 
-        public IReadOnlyList<Transaction> Transactions => _transactions.AsReadOnly();
+        public IReadOnlyList<Transaction> PendingTransactions => _transactions.AsReadOnly();
     }
 
     public partial class BankAccountAggregate : AggregateRoot

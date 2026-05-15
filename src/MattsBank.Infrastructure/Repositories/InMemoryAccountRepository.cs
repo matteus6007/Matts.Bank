@@ -113,7 +113,7 @@ namespace MattsBank.Infrastructure.Repositories
                 aggregate.Balance,
                 aggregate.Version);
 
-            foreach (var transaction in aggregate.Transactions)
+            foreach (var transaction in aggregate.PendingTransactions)
             {
                 await _transactionRepository.CreateAsync(transaction);
             }
